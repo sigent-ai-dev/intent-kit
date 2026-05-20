@@ -328,3 +328,57 @@ def test_check_fix_adds_missing_fields(tmp_path, monkeypatch):
     assert "created_at" in state
     assert "intent_id" in state
     assert "project_name" in state
+
+
+def test_check_cross_tool_traceability_passes(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    intent_dir = _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": True},
+        },
+    )
+    (intent_dir / "backlog" / "features.md").write_text(
+        "### 1. Feature\n\n**Size**: M\n**Success criteria**: SC-001\n\n"
+    )
+    (intent_dir / "backlog" / "speckit-ready.md").write_text(
+        "/speckit.specify Feature — context. Advances SC-001.\n"
+    )
+    # Create a spec with traceability
+    specs_dir = tmp_path / "specs" / "001-feature"
+    specs_dir.mkdir(parents=True)
+    (specs_dir / "spec.md").write_text(
+        "# Feature\n\n## Traceability\n\n- **Intent**: INT-001\n- **SC**: SC-001\n"
+    )
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 0
+    assert "intent traceability" in result.output
+
+
+def test_check_cross_tool_traceability_warns(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    intent_dir = _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": True},
+        },
+    )
+    (intent_dir / "backlog" / "features.md").write_text(
+        "### 1. Feature\n\n**Size**: M\n**Success criteria**: SC-001\n\n"
+    )
+    (intent_dir / "backlog" / "speckit-ready.md").write_text(
+        "/speckit.specify Feature — context. Advances SC-001.\n"
+    )
+    # Create a spec WITHOUT traceability
+    specs_dir = tmp_path / "specs" / "001-feature"
+    specs_dir.mkdir(parents=True)
+    (specs_dir / "spec.md").write_text("# Feature\n\nNo traceability here.\n")
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 0  # warning, not error
+    assert "without INT/SC" in result.output

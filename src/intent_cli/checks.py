@@ -503,6 +503,55 @@ def check_backlog_completeness(intent_dir: Path, verbose: bool = False) -> list[
     return results
 
 
+def check_cross_tool_traceability(intent_dir: Path, verbose: bool = False) -> list[CheckResult]:
+    """Check that specs/ directories contain traceability back to intent (optional)."""
+    results = []
+    specs_dir = intent_dir.parent / "specs"
+
+    if not specs_dir.is_dir():
+        return results
+
+    spec_files = list(specs_dir.glob("*/spec.md"))
+    if not spec_files:
+        return results
+
+    missing_trace = []
+    for spec_file in spec_files:
+        content = spec_file.read_text(encoding="utf-8")
+        has_int = bool(re.search(r"INT-\d+", content))
+        has_sc = bool(re.search(r"SC-\d+", content))
+        if not has_int and not has_sc:
+            missing_trace.append(spec_file.parent.name)
+
+    if missing_trace:
+        results.append(
+            CheckResult(
+                name="Cross-tool traceability",
+                passed=False,
+                severity="warning",
+                message=(
+                    f"{len(missing_trace)} spec(s) without INT/SC traceability: "
+                    f"{', '.join(missing_trace[:5])}"
+                ),
+                details="Specs created from /intent.decompose should reference INT-NNN and SC-NNN"
+                if verbose
+                else None,
+            )
+        )
+    else:
+        results.append(
+            CheckResult(
+                name="Cross-tool traceability",
+                passed=True,
+                severity="warning",
+                message=f"All {len(spec_files)} specs have intent traceability",
+                details=f"Checked: {[f.parent.name for f in spec_files]}" if verbose else None,
+            )
+        )
+
+    return results
+
+
 def auto_fix(intent_dir: Path) -> list[str]:
     """Auto-correct simple issues. Returns list of fix descriptions."""
     fixes = []
@@ -579,5 +628,6 @@ def run_all_checks(intent_dir: Path, verbose: bool = False) -> ValidationReport:
         report.results.extend(check_decomposition_quality(intent_dir, verbose))
         report.results.extend(check_backlog_completeness(intent_dir, verbose))
         report.results.extend(check_speckit_ready(intent_dir, verbose))
+        report.results.extend(check_cross_tool_traceability(intent_dir, verbose))
 
     return report
