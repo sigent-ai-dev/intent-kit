@@ -27,8 +27,7 @@ def _find_templates_dir() -> Path:
         return _TEMPLATES_DIR
 
     raise FileNotFoundError(
-        "Cannot locate templates directory. "
-        "Expected at: {pkg_data} or {repo_templates}"
+        "Cannot locate templates directory. Expected at: {pkg_data} or {repo_templates}"
     )
 
 
