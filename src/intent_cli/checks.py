@@ -326,6 +326,73 @@ def check_adr_traceability(intent_dir: Path, verbose: bool = False) -> list[Chec
     return results
 
 
+def check_speckit_ready(intent_dir: Path, verbose: bool = False) -> list[CheckResult]:
+    results = []
+    speckit_file = intent_dir / "backlog" / "speckit-ready.md"
+
+    if not speckit_file.is_file():
+        results.append(
+            CheckResult(
+                name="Speckit-ready output",
+                passed=False,
+                severity="error",
+                message="speckit-ready.md not found in .intent/backlog/",
+                details=f"Expected at: {speckit_file}",
+            )
+        )
+        return results
+
+    content = speckit_file.read_text(encoding="utf-8")
+
+    # Check for at least one invocation
+    invocations = re.findall(r"^/speckit\.specify\s+.+", content, re.MULTILINE)
+    if not invocations:
+        results.append(
+            CheckResult(
+                name="Speckit-ready output",
+                passed=False,
+                severity="error",
+                message="No /speckit.specify invocations found in speckit-ready.md",
+                details="File exists but contains no ready features",
+            )
+        )
+        return results
+
+    # Check each invocation has SC reference
+    missing_sc = []
+    for i, inv in enumerate(invocations, 1):
+        if not re.search(r"SC-\d+", inv):
+            missing_sc.append(i)
+
+    if missing_sc:
+        results.append(
+            CheckResult(
+                name="Speckit-ready traceability",
+                passed=False,
+                severity="warning",
+                message=(
+                    f"Invocations #{', #'.join(str(n) for n in missing_sc)} "
+                    f"missing SC-NNN references"
+                ),
+                details="Each invocation should reference at least one success criterion"
+                if verbose
+                else None,
+            )
+        )
+    else:
+        results.append(
+            CheckResult(
+                name="Speckit-ready output",
+                passed=True,
+                severity="error",
+                message=f"{len(invocations)} invocations found, all with SC references",
+                details=f"Invocations: {invocations}" if verbose else None,
+            )
+        )
+
+    return results
+
+
 def run_all_checks(intent_dir: Path, verbose: bool = False) -> ValidationReport:
     report = ValidationReport()
 
@@ -347,6 +414,7 @@ def run_all_checks(intent_dir: Path, verbose: bool = False) -> ValidationReport:
     # Conditional checks based on phase state
     phases = state.get("phases", {})
     capture_complete = phases.get("capture", {}).get("complete", False)
+    decompose_complete = phases.get("decompose", {}).get("complete", False)
 
     if capture_complete:
         report.results.extend(check_intent_schema(intent_dir, verbose))
@@ -354,5 +422,9 @@ def run_all_checks(intent_dir: Path, verbose: bool = False) -> ValidationReport:
 
     # ADR traceability (always check if accepted/ has files)
     report.results.extend(check_adr_traceability(intent_dir, verbose))
+
+    # Speckit-ready validation (only when decompose is complete)
+    if decompose_complete:
+        report.results.extend(check_speckit_ready(intent_dir, verbose))
 
     return report
