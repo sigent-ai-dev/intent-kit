@@ -393,6 +393,157 @@ def check_speckit_ready(intent_dir: Path, verbose: bool = False) -> list[CheckRe
     return results
 
 
+def check_decomposition_quality(intent_dir: Path, verbose: bool = False) -> list[CheckResult]:
+    results = []
+    features_file = intent_dir / "backlog" / "features.md"
+
+    if not features_file.is_file():
+        results.append(
+            CheckResult(
+                name="Decomposition quality",
+                passed=False,
+                severity="error",
+                message="features.md not found in .intent/backlog/",
+                details=f"Expected at: {features_file}",
+            )
+        )
+        return results
+
+    content = features_file.read_text(encoding="utf-8")
+
+    # Check for XL features
+    xl_features = re.findall(r"^\*\*Size\*\*:\s*XL", content, re.MULTILINE)
+    if xl_features:
+        results.append(
+            CheckResult(
+                name="No XL features",
+                passed=False,
+                severity="error",
+                message=f"Found {len(xl_features)} XL feature(s) — must decompose further",
+                details="XL (>2 weeks) features are never acceptable in the final backlog"
+                if verbose
+                else None,
+            )
+        )
+    else:
+        results.append(
+            CheckResult(
+                name="No XL features",
+                passed=True,
+                severity="error",
+                message="No XL features in backlog",
+            )
+        )
+
+    # Check for orphaned features (no SC reference)
+    feature_blocks = re.split(r"^### \d+\.", content, flags=re.MULTILINE)
+    orphaned = 0
+    for block in feature_blocks[1:]:  # skip content before first feature
+        if not re.search(r"SC-\d+", block):
+            orphaned += 1
+
+    if orphaned:
+        results.append(
+            CheckResult(
+                name="No orphaned features",
+                passed=False,
+                severity="warning",
+                message=f"{orphaned} feature(s) without SC-NNN reference",
+                details="Every feature should advance at least one success criterion"
+                if verbose
+                else None,
+            )
+        )
+
+    return results
+
+
+def check_backlog_completeness(intent_dir: Path, verbose: bool = False) -> list[CheckResult]:
+    results = []
+    intent_file = intent_dir / "intent.md"
+    features_file = intent_dir / "backlog" / "features.md"
+
+    if not intent_file.is_file() or not features_file.is_file():
+        return results
+
+    intent_content = intent_file.read_text(encoding="utf-8")
+    features_content = features_file.read_text(encoding="utf-8")
+
+    # Extract SC identifiers from intent
+    intent_scs = set(re.findall(r"SC-\d+", intent_content))
+    # Extract SC references from features
+    features_scs = set(re.findall(r"SC-\d+", features_content))
+
+    uncovered = intent_scs - features_scs
+    if uncovered:
+        results.append(
+            CheckResult(
+                name="Backlog completeness",
+                passed=False,
+                severity="warning",
+                message=(
+                    f"Success criteria not covered by any feature: {', '.join(sorted(uncovered))}"
+                ),
+                details="Every SC in the intent should have at least one feature advancing it"
+                if verbose
+                else None,
+            )
+        )
+    else:
+        results.append(
+            CheckResult(
+                name="Backlog completeness",
+                passed=True,
+                severity="warning",
+                message=f"All {len(intent_scs)} success criteria covered by features",
+                details=f"Covered: {sorted(intent_scs)}" if verbose else None,
+            )
+        )
+
+    return results
+
+
+def auto_fix(intent_dir: Path) -> list[str]:
+    """Auto-correct simple issues. Returns list of fix descriptions."""
+    fixes = []
+    state_file = intent_dir / "state.json"
+
+    if not state_file.is_file():
+        return fixes
+
+    try:
+        state = json.loads(state_file.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, ValueError):
+        return fixes
+
+    modified = False
+
+    # Fix missing created_at
+    if "created_at" not in state:
+        from datetime import datetime, timezone
+
+        state["created_at"] = datetime.now(timezone.utc).isoformat()
+        fixes.append("Added missing created_at to state.json")
+        modified = True
+
+    # Fix missing intent_id
+    if "intent_id" not in state:
+        state["intent_id"] = "INT-001"
+        fixes.append("Added missing intent_id to state.json")
+        modified = True
+
+    # Fix missing project_name
+    if "project_name" not in state:
+        state["project_name"] = intent_dir.parent.name
+        fixes.append(f"Added missing project_name to state.json: '{state['project_name']}'")
+        modified = True
+
+    if modified:
+        state_file.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+
+    return fixes
+
+
 def run_all_checks(intent_dir: Path, verbose: bool = False) -> ValidationReport:
     report = ValidationReport()
 
@@ -423,8 +574,10 @@ def run_all_checks(intent_dir: Path, verbose: bool = False) -> ValidationReport:
     # ADR traceability (always check if accepted/ has files)
     report.results.extend(check_adr_traceability(intent_dir, verbose))
 
-    # Speckit-ready validation (only when decompose is complete)
+    # Decomposition quality and speckit-ready (only when decompose is complete)
     if decompose_complete:
+        report.results.extend(check_decomposition_quality(intent_dir, verbose))
+        report.results.extend(check_backlog_completeness(intent_dir, verbose))
         report.results.extend(check_speckit_ready(intent_dir, verbose))
 
     return report

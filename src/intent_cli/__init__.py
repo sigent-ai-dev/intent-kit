@@ -120,11 +120,20 @@ def init(
 @app.command()
 def check(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show details of each check"),
+    fix: bool = typer.Option(False, "--fix", help="Auto-correct simple issues"),
 ):
     """Validate the current project's IDD state (phase gates, traceability)."""
-    from intent_cli.checks import run_all_checks
+    from intent_cli.checks import auto_fix, run_all_checks
 
     intent_path = Path(INTENT_DIR)
+
+    if fix:
+        fixes = auto_fix(intent_path)
+        for f in fixes:
+            console.print(f"  [cyan]FIXED[/]  {f}")
+        if fixes:
+            console.print()
+
     report = run_all_checks(intent_path, verbose=verbose)
 
     for result in report.results:
