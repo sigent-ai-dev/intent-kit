@@ -164,6 +164,9 @@ def test_check_speckit_ready_valid(tmp_path, monkeypatch):
             "decompose": {"complete": True},
         },
     )
+    (intent_dir / "backlog" / "features.md").write_text(
+        "### 1. Implement auth\n\n**Size**: M\n**Success criteria**: SC-001\n\n"
+    )
     speckit_file = intent_dir / "backlog" / "speckit-ready.md"
     speckit_file.write_text(
         "## Ready for /speckit.specify\n\n"
@@ -176,7 +179,7 @@ def test_check_speckit_ready_valid(tmp_path, monkeypatch):
 
 def test_check_speckit_ready_missing(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    _init_project(
+    intent_dir = _init_project(
         tmp_path,
         phases={
             "capture": {"complete": True},
@@ -184,6 +187,9 @@ def test_check_speckit_ready_missing(tmp_path, monkeypatch):
             "define": {"complete": True},
             "decompose": {"complete": True},
         },
+    )
+    (intent_dir / "backlog" / "features.md").write_text(
+        "### 1. Feature\n\n**Size**: M\n**Success criteria**: SC-001\n\n"
     )
     result = runner.invoke(app, ["check"])
     assert result.exit_code == 1
@@ -200,6 +206,9 @@ def test_check_speckit_ready_missing_sc(tmp_path, monkeypatch):
             "define": {"complete": True},
             "decompose": {"complete": True},
         },
+    )
+    (intent_dir / "backlog" / "features.md").write_text(
+        "### 1. Implement auth\n\n**Size**: M\n**Success criteria**: SC-001\n\n"
     )
     speckit_file = intent_dir / "backlog" / "speckit-ready.md"
     speckit_file.write_text(
@@ -224,3 +233,98 @@ def test_check_speckit_skipped_when_decompose_incomplete(tmp_path, monkeypatch):
     result = runner.invoke(app, ["check"])
     assert result.exit_code == 0
     assert "speckit-ready" not in result.output
+
+
+def test_check_xl_features_rejected(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    intent_dir = _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": True},
+        },
+    )
+    features_file = intent_dir / "backlog" / "features.md"
+    features_file.write_text("### 1. Big feature\n\n**Size**: XL\n**Success criteria**: SC-001\n\n")
+    speckit_file = intent_dir / "backlog" / "speckit-ready.md"
+    speckit_file.write_text("/speckit.specify Big feature — context. Advances SC-001.\n")
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 1
+    assert "XL" in result.output
+
+
+def test_check_orphaned_features_warned(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    intent_dir = _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": True},
+        },
+    )
+    features_file = intent_dir / "backlog" / "features.md"
+    features_file.write_text(
+        "### 1. Good feature\n\n"
+        "**Size**: M\n"
+        "**Success criteria**: SC-001\n\n"
+        "### 2. Orphan feature\n\n"
+        "**Size**: S\n"
+        "No SC reference here.\n\n"
+    )
+    speckit_file = intent_dir / "backlog" / "speckit-ready.md"
+    speckit_file.write_text("/speckit.specify Good feature — context. Advances SC-001.\n")
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 0  # warning not error
+    assert "without SC-NNN" in result.output
+
+
+def test_check_backlog_completeness(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    intent_dir = _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": True},
+        },
+    )
+    # intent.md has SC-001, features only cover SC-001 — should pass
+    features_file = intent_dir / "backlog" / "features.md"
+    features_file.write_text("### 1. Feature\n\n**Success criteria**: SC-001\n\n")
+    speckit_file = intent_dir / "backlog" / "speckit-ready.md"
+    speckit_file.write_text("/speckit.specify Feature — context. Advances SC-001.\n")
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 0
+    assert "success criteria covered" in result.output
+
+
+def test_check_fix_adds_missing_fields(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    intent_dir = tmp_path / ".intent"
+    intent_dir.mkdir()
+    (intent_dir / "adr" / "draft").mkdir(parents=True)
+    (intent_dir / "adr" / "accepted").mkdir(parents=True)
+    (intent_dir / "backlog").mkdir()
+    # Minimal state.json missing fields
+    (intent_dir / "state.json").write_text(
+        '{"phases": {"capture": {"complete": false}, '
+        '"steer": {"complete": false}, "define": {"complete": false}, '
+        '"decompose": {"complete": false}}, "current_phase": null}'
+    )
+    (intent_dir / "intent.md").write_text("# placeholder")
+
+    result = runner.invoke(app, ["check", "--fix"])
+    assert "FIXED" in result.output
+    assert "created_at" in result.output
+
+    import json
+
+    state = json.loads((intent_dir / "state.json").read_text())
+    assert "created_at" in state
+    assert "intent_id" in state
+    assert "project_name" in state
