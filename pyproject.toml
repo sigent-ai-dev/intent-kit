@@ -19,3 +19,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/intent_cli"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"templates" = "intent_cli/data/templates"
