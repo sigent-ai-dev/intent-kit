@@ -109,19 +109,48 @@ If gate fails: ERROR "Phase 3 (define) is not complete. Run /intent.define first
 
 6. **Produce Spec Kit integration summary**:
 
-   For each feature marked "Spec Kit ready: yes", produce the one-liner that can be passed to `/speckit.specify`:
+   For each feature marked "Spec Kit ready: yes", produce a structured invocation block in this exact format:
 
    ```markdown
    ## Ready for /speckit.specify
 
-   1. `/speckit.specify [Feature title] — [context sentence]. Must satisfy SC-001. Constrained by ADR-003.`
-   2. `/speckit.specify [Feature title] — [context]. Advances SC-002.`
+   ### 1. [Feature title]
+
+   **Intent**: INT-001
+   **Advances**: SC-001, SC-003
+   **Constrained by**: ADR-003 (Use event-driven architecture)
+
+   **Invocation**:
+
+   /speckit.specify [Feature title] — [context sentence]. Intent: INT-001. Advances SC-001, SC-003. Constrained by ADR-003: [decision summary]. Acceptance criteria seed: (1) [AC from decomposed feature] (2) [AC from decomposed feature] (3) [AC from decomposed feature]
+
+   ---
+
+   ### 2. [Feature title]
+
+   ...
+   ```
+
+   **Format rules for the invocation string**:
+   - Single continuous string (no line breaks) — ready for copy-paste
+   - Starts with feature title followed by em-dash and context
+   - MUST contain "Intent: INT-NNN"
+   - MUST contain "Advances SC-NNN" (at least one)
+   - SHOULD contain "Constrained by ADR-NNN: [summary]" if relevant ADRs exist
+   - MUST contain "Acceptance criteria seed:" followed by numbered AC from the feature
+
+   For features marked "Spec Kit ready: no", add a separate section:
+
+   ```markdown
+   ## Needs Spike
+
+   - [Feature title] — Reason: [why not ready]
    ```
 
 7. **Write outputs**:
    - `.intent/backlog/features.md` — the full feature list
    - `.intent/backlog/dependency-map.md` — the dependency graph
-   - `.intent/backlog/speckit-ready.md` — the Spec Kit integration commands
+   - `.intent/backlog/speckit-ready.md` — the Spec Kit integration commands (format above)
 
 8. **Write audit entry** and **update state.json**.
 

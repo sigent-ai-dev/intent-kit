@@ -151,3 +151,76 @@ def test_check_verbose_shows_details(tmp_path, monkeypatch):
     result = runner.invoke(app, ["check", "--verbose"])
     assert result.exit_code == 0
     assert "Found:" in result.output
+
+
+def test_check_speckit_ready_valid(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    intent_dir = _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": True},
+        },
+    )
+    speckit_file = intent_dir / "backlog" / "speckit-ready.md"
+    speckit_file.write_text(
+        "## Ready for /speckit.specify\n\n"
+        "/speckit.specify Implement auth — User login. Intent: INT-001. Advances SC-001.\n"
+    )
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 0
+    assert "invocations found" in result.output
+
+
+def test_check_speckit_ready_missing(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": True},
+        },
+    )
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 1
+    assert "speckit-ready.md not found" in result.output
+
+
+def test_check_speckit_ready_missing_sc(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    intent_dir = _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": True},
+        },
+    )
+    speckit_file = intent_dir / "backlog" / "speckit-ready.md"
+    speckit_file.write_text(
+        "## Ready for /speckit.specify\n\n/speckit.specify Implement auth — No traceability here.\n"
+    )
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 0  # warning, not error
+    assert "missing SC-NNN" in result.output
+
+
+def test_check_speckit_skipped_when_decompose_incomplete(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _init_project(
+        tmp_path,
+        phases={
+            "capture": {"complete": True},
+            "steer": {"complete": True},
+            "define": {"complete": True},
+            "decompose": {"complete": False},
+        },
+    )
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 0
+    assert "speckit-ready" not in result.output
