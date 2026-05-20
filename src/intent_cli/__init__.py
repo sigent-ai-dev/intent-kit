@@ -49,15 +49,13 @@ def init(
 
     if ai not in SUPPORTED_AGENTS:
         console.print(
-            f"[red]Error:[/] Unsupported AI agent '{ai}'. "
-            f"Supported: {', '.join(SUPPORTED_AGENTS)}"
+            f"[red]Error:[/] Unsupported AI agent '{ai}'. Supported: {', '.join(SUPPORTED_AGENTS)}"
         )
         raise typer.Exit(code=1)
 
     if intent_path.exists() and not force:
         console.print(
-            "[red]Error:[/] .intent/ already exists. "
-            "Use [bold]--force[/] to reinitialise."
+            "[red]Error:[/] .intent/ already exists. Use [bold]--force[/] to reinitialise."
         )
         raise typer.Exit(code=1)
 
@@ -75,9 +73,7 @@ def init(
         (intent_path / "intent.md").write_text(intent_template, encoding="utf-8")
 
         adr_template = get_template("adr/_template.md")
-        (intent_path / "adr" / "_template.md").write_text(
-            adr_template, encoding="utf-8"
-        )
+        (intent_path / "adr" / "_template.md").write_text(adr_template, encoding="utf-8")
 
         # Generate state and audit
         state_json = generate_state_json(project_name)
@@ -122,10 +118,37 @@ def init(
 
 
 @app.command()
-def check():
+def check(
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show details of each check"),
+):
     """Validate the current project's IDD state (phase gates, traceability)."""
-    console.print("[bold]Checking IDD project state...[/]")
-    console.print("[yellow]Not yet implemented — see issue #2[/]")
+    from intent_cli.checks import run_all_checks
+
+    intent_path = Path(INTENT_DIR)
+    report = run_all_checks(intent_path, verbose=verbose)
+
+    for result in report.results:
+        if result.passed:
+            icon = "[green]PASS[/]"
+        elif result.severity == "warning":
+            icon = "[yellow]WARN[/]"
+        else:
+            icon = "[red]FAIL[/]"
+
+        console.print(f"  {icon}  {result.name}: {result.message}")
+        if verbose and result.details:
+            console.print(f"         [dim]{result.details}[/]")
+
+    console.print()
+    if report.has_errors:
+        errors = sum(1 for r in report.results if not r.passed and r.severity == "error")
+        console.print(f"[red bold]Check failed[/] — {errors} error(s) found")
+        raise typer.Exit(code=1)
+    elif report.has_warnings:
+        warnings = sum(1 for r in report.results if not r.passed and r.severity == "warning")
+        console.print(f"[green bold]Check passed[/] with {warnings} warning(s)")
+    else:
+        console.print("[green bold]All checks passed[/]")
 
 
 def main():
