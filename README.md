@@ -61,29 +61,63 @@ intent check
 
 Launch your AI assistant in the project directory. The `/intent.*` commands are available.
 
-```bash
-/intent.capture We need to modernise our legacy portfolio construction system — it's a 60MB Excel workbook that 3 analysts rely on daily, and we need it in a maintainable stack behind a web interface
 ```
+/intent.capture We need to modernise our legacy portfolio construction system
+```
+
+The command uses **propose-and-steer** elicitation — it interprets your input and lets you correct:
+
+```
+AI: Here's my read of what you're describing:
+
+    The big idea: Replace a fragile Excel-based portfolio construction
+    workbook with a maintainable web application that preserves the
+    analysts' existing workflow while enabling collaboration and auditability.
+
+    What I think is driving this: The 60MB workbook is a single point of
+    failure — if it corrupts or the analyst who maintains it leaves,
+    the team loses a critical capability.
+
+    Success would look like:
+    - Analysts can construct portfolios through a web interface
+    - Multiple analysts can work simultaneously
+    - Full audit trail of portfolio changes
+
+    Am I reading this right, or should I adjust my understanding?
+
+User: Right direction but the main driver is actually regulatory —
+      we've been told the Excel approach won't pass the next audit.
+
+AI: Got it — compliance is the driver, not just operational risk.
+    That changes the quality attributes significantly. Let me draft
+    the full intent with audit/compliance as the primary motivation...
+```
+
+If your input is detailed enough, the command skips straight to drafting — no interaction needed.
 
 ### 3. Steer architectural decisions
 
-```bash
+```
 /intent.steer
 ```
 
+Produces ADRs (Architectural Decision Records) anchored to the intent's quality attributes and success criteria.
+
 ### 4. Define the design
 
-```bash
+```
 /intent.define
 ```
 
+Produces either an Architecture Design Document or Business Design Document depending on the nature of the intent.
+
 ### 5. Decompose into features
 
-```bash
+```
 /intent.decompose
 ```
 
-Each decomposed feature is ready for Spec Kit's `/speckit.specify` workflow.
+Breaks the big idea into right-sized features, each with a copy-pasteable `/speckit.specify` invocation ready for [Spec Kit](https://github.com/github/spec-kit).
 
 ## Supported AI Agents
 
@@ -180,14 +214,21 @@ The decompose phase produces feature descriptions ready for `/speckit.specify`. 
 - Architectural constraints from steering
 - Acceptance criteria seed
 
+## Examples
+
+See [`examples/`](./examples/) for full worked examples:
+
+- **[Portfolio System](./examples/portfolio-system/)** — Compliance-driven modernisation, shows full 4-phase workflow with real interactions
+- **[Developer Platform](./examples/developer-platform/)** — Vague input ("internal developer platform"), shows how propose-and-steer draws out the real intent through correction
+
 ## Documentation
 
-- [IDD Methodology](./intent-driven.md) — the full methodology document
 - [Installation Guide](./docs/installation.md)
 - [Quick Start](./docs/quickstart.md)
+- [IDD Methodology](./docs/methodology.md)
 - [Template Reference](./docs/templates.md)
 - [Integration with Spec Kit](./docs/speckit-integration.md)
-- [IDD Methodology (detailed)](./doc/design/intent-driven-design-generic.md)
+- [IDD Methodology (source)](./doc/design/intent-driven-design-generic.md)
 
 ## Contributing
 

@@ -1,15 +1,15 @@
 ---
-description: Capture structured business intent from a big idea description — Phase 1 of IDD.
-handoffs:
-  - label: Steer Architecture
-    agent: intent.steer
-    prompt: Create steering decisions for this intent
-    send: true
-  - label: Clarify Intent
-    agent: intent.clarify
-    prompt: Identify under-specified areas in the intent
-    send: true
+name: "intent-capture"
+description: "Capture structured business intent from a big idea description — Phase 1 of IDD."
+argument-hint: "Describe the big idea you want to capture"
+compatibility: "Requires .intent/ directory (run intent init first)"
+metadata:
+  author: "intent-kit"
+  source: "templates/commands/capture.md"
+user-invocable: true
+disable-model-invocation: false
 ---
+
 
 ## User Input
 

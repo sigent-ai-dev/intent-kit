@@ -139,6 +139,25 @@ def test_init_windsurf_agent_strips_frontmatter(tmp_path, monkeypatch):
     assert cmd.startswith("# intent.capture")
 
 
+def test_init_all_agents(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["init", "test-project", "--all"])
+    assert result.exit_code == 0
+    assert (tmp_path / ".claude" / "commands" / "intent.capture.md").is_file()
+    assert (tmp_path / ".gemini" / "commands" / "intent.capture.md").is_file()
+    assert (tmp_path / ".github" / "agents" / "intent-capture.md").is_file()
+    assert (tmp_path / ".cursor" / "commands" / "intent.capture.md").is_file()
+    assert (tmp_path / ".amazonq" / "prompts" / "intent-capture.md").is_file()
+    assert (tmp_path / ".windsurf" / "workflows" / "intent-capture.md").is_file()
+
+
+def test_init_all_and_ai_mutually_exclusive(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["init", "test-project", "--all", "--ai", "gemini"])
+    assert result.exit_code == 1
+    assert "mutually exclusive" in result.output
+
+
 def test_init_invalid_agent(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(app, ["init", "test-project", "--ai", "invalid"])

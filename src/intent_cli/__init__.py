@@ -37,6 +37,11 @@ def init(
         "--ai",
         help="AI assistant: claude, gemini, copilot, cursor, q, windsurf",
     ),
+    all_agents: bool = typer.Option(
+        False,
+        "--all",
+        help="Install commands for all supported AI agents",
+    ),
     force: bool = typer.Option(
         False,
         "--force",
@@ -46,11 +51,17 @@ def init(
     """Initialise a new project with IDD structure and templates."""
     intent_path = Path(INTENT_DIR)
 
-    if ai not in SUPPORTED_AGENTS:
+    if all_agents and ai != "claude":
+        console.print("[red]Error:[/] --all and --ai are mutually exclusive.")
+        raise typer.Exit(code=1)
+
+    if not all_agents and ai not in SUPPORTED_AGENTS:
         console.print(
             f"[red]Error:[/] Unsupported AI agent '{ai}'. Supported: {', '.join(SUPPORTED_AGENTS)}"
         )
         raise typer.Exit(code=1)
+
+    agents_to_install = SUPPORTED_AGENTS if all_agents else [ai]
 
     if intent_path.exists() and not force:
         console.print(
@@ -78,21 +89,22 @@ def init(
         state_json = generate_state_json(project_name)
         (intent_path / "state.json").write_text(state_json, encoding="utf-8")
 
-        audit_md = generate_audit_md(project_name, ai)
+        audit_md = generate_audit_md(project_name, "all" if all_agents else ai)
         (intent_path / "audit.md").write_text(audit_md, encoding="utf-8")
 
         # Copy agent command files
-        agent_config = AGENTS[ai]
-        agent_dir = Path(agent_config.directory)
-        agent_dir.mkdir(parents=True, exist_ok=True)
+        for agent_name in agents_to_install:
+            agent_config = AGENTS[agent_name]
+            agent_dir = Path(agent_config.directory)
+            agent_dir.mkdir(parents=True, exist_ok=True)
 
-        for command in COMMANDS:
-            source_content = get_template(f"commands/{command}.md")
-            adapted_content = adapt_template_for_agent(source_content, ai, command)
-            filename = agent_config.file_pattern.format(command=command)
-            target = agent_dir / filename
-            if not target.exists():
-                target.write_text(adapted_content, encoding="utf-8")
+            for command in COMMANDS:
+                source_content = get_template(f"commands/{command}.md")
+                adapted_content = adapt_template_for_agent(source_content, agent_name, command)
+                filename = agent_config.file_pattern.format(command=command)
+                target = agent_dir / filename
+                if not target.exists():
+                    target.write_text(adapted_content, encoding="utf-8")
 
     except PermissionError:
         console.print("[red]Error:[/] Cannot write to directory — permission denied.")
@@ -103,15 +115,17 @@ def init(
 
     # Success output
     console.print(f"\n[bold green]Initialising IDD project:[/] {project_name}")
-    console.print(f"[dim]AI assistant:[/] {ai}\n")
+    console.print(f"[dim]AI assistant:[/] {'all' if all_agents else ai}\n")
     console.print("[bold]Created:[/]")
     console.print(f"  {INTENT_DIR}/intent.md")
     console.print(f"  {INTENT_DIR}/state.json")
     console.print(f"  {INTENT_DIR}/audit.md")
     console.print(f"  {INTENT_DIR}/adr/_template.md")
-    for command in COMMANDS:
-        filename = agent_config.file_pattern.format(command=command)
-        console.print(f"  {agent_config.directory}/{filename}")
+    for agent_name in agents_to_install:
+        agent_config = AGENTS[agent_name]
+        for command in COMMANDS:
+            filename = agent_config.file_pattern.format(command=command)
+            console.print(f"  {agent_config.directory}/{filename}")
     console.print("\n[bold]Next steps:[/]")
     console.print("  1. Run /intent.capture with your big idea")
     console.print("  2. Use [bold]intent check[/] to validate project state")
