@@ -60,7 +60,7 @@ The state file tracks which phase is complete and enforces gates:
 
 ## Implementation Plan
 
-### Phase A: Foundation (current)
+### Phase A: Foundation (complete)
 
 - [x] Project structure mirroring Spec Kit
 - [x] README with full workflow documentation
@@ -70,44 +70,44 @@ The state file tracks which phase is complete and enforces gates:
 - [x] Constitution / memory file
 - [x] pyproject.toml with CLI entry point
 - [x] CONTRIBUTING.md with development guide
-- [ ] CLI `init` command — scaffold `.intent/` + copy templates + generate agent commands
-- [ ] CLI `check` command — validate state, gates, traceability
+- [x] CLI `init` command — scaffold `.intent/` + copy templates + generate agent commands
+- [x] CLI `check` command — validate state, gates, traceability
 
-### Phase B: CLI Implementation
+### Phase B: CLI Implementation (complete)
 
-- [ ] Agent config dictionary (mirroring Spec Kit's pattern)
-- [ ] `intent init` scaffolds all directories and agent-specific command files
-- [ ] `intent check` validates:
+- [x] Agent config dictionary (mirroring Spec Kit's pattern)
+- [x] `intent init` scaffolds all directories and agent-specific command files
+- [x] `intent check` validates:
   - Phase state consistency
   - Gate satisfaction (no skipping)
   - Intent document schema (7 sections, validation rules)
   - Traceability (every ADR has a Reference field)
   - Decomposition quality (no XL features, no orphaned features)
-- [ ] Shell scripts for automation (bash + powershell)
+- [x] Shell scripts for automation (bash + powershell)
 
-### Phase C: Agent Integration
+### Phase C: Agent Integration (complete)
 
-- [ ] Claude Code commands (`.claude/commands/intent.*.md`)
-- [ ] Gemini CLI commands (`.gemini/commands/`)
-- [ ] GitHub Copilot agents (`.github/agents/`)
-- [ ] Cursor commands (`.cursor/commands/`)
-- [ ] Amazon Q Developer prompts (`.amazonq/prompts/`)
-- [ ] Windsurf workflows (`.windsurf/workflows/`)
+- [x] Claude Code commands (`.claude/commands/intent.*.md`)
+- [x] Gemini CLI commands (`.gemini/commands/`)
+- [x] GitHub Copilot agents (`.github/agents/`)
+- [x] Cursor commands (`.cursor/commands/`)
+- [x] Amazon Q Developer prompts (`.amazonq/prompts/`)
+- [x] Windsurf workflows (`.windsurf/workflows/`)
 
-### Phase D: Spec Kit Integration
+### Phase D: Spec Kit Integration (complete)
 
-- [ ] `/intent.decompose` produces output consumable by `/speckit.specify`
-- [ ] Traceability identifiers flow through to Spec Kit feature directories
-- [ ] `intent check` validates cross-tool traceability
-- [ ] Documentation: integration guide
+- [x] `/intent.decompose` produces output consumable by `/speckit.specify`
+- [x] Traceability identifiers flow through to Spec Kit feature directories
+- [x] `intent check` validates cross-tool traceability
+- [x] Documentation: integration guide
 
-### Phase E: Testing & Polish
+### Phase E: Testing & Polish (complete)
 
-- [ ] Unit tests for CLI commands
-- [ ] Integration tests (full workflow end-to-end)
-- [ ] GitHub Actions CI (lint + test)
-- [ ] Release workflow (mirroring Spec Kit)
-- [ ] Documentation site (docfx or similar)
+- [x] Unit tests for CLI commands (30 tests)
+- [x] Integration tests (full workflow end-to-end via CI build job)
+- [x] GitHub Actions CI (lint + test on Python 3.11/3.12)
+- [x] Release workflow (tag-triggered: GitHub release + docs deploy)
+- [x] Documentation site (MkDocs Material)
 
 ## General Practices
 

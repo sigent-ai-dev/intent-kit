@@ -47,7 +47,7 @@ Each phase is **gated** (next phase refuses to proceed until current validates),
 ### 1. Install Intent CLI
 
 ```bash
-uv tool install intent-cli --from git+https://github.com/superhighway-factory/intent-kit.git
+uv tool install intent-cli --from git+https://github.com/sigent-ai-dev/intent-kit.git
 ```
 
 Then use:
@@ -187,7 +187,7 @@ The decompose phase produces feature descriptions ready for `/speckit.specify`. 
 - [Quick Start](./docs/quickstart.md)
 - [Template Reference](./docs/templates.md)
 - [Integration with Spec Kit](./docs/speckit-integration.md)
-- [Backlog Decomposition Playbook](./docs/decomposition-playbook.md)
+- [IDD Methodology (detailed)](./doc/design/intent-driven-design-generic.md)
 
 ## Contributing
 
