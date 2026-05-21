@@ -77,6 +77,13 @@ intent check --verbose # Detailed output
 intent check --fix     # Auto-correct simple issues
 ```
 
+## Examples
+
+See full worked examples in [`examples/`](https://github.com/sigent-ai-dev/intent-kit/tree/main/examples):
+
+- **[Portfolio System](https://github.com/sigent-ai-dev/intent-kit/tree/main/examples/portfolio-system)** — Compliance-driven modernisation, detailed input, full 4-phase workflow
+- **[Developer Platform](https://github.com/sigent-ai-dev/intent-kit/tree/main/examples/developer-platform)** — Vague input, shows propose-and-steer interaction with corrections
+
 ## Next Steps
 
 - Read the [IDD Methodology](methodology.md) for the full framework
