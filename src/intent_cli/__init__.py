@@ -29,6 +29,9 @@ console = Console()
 INTENT_DIR = ".intent"
 
 
+DOWNSTREAM_TOOLS = ["speckit", "aidlc", "github-issues", "plain"]
+
+
 @app.command()
 def init(
     project_name: str = typer.Argument(..., help="Name of the project to initialise"),
@@ -42,6 +45,11 @@ def init(
         "--all",
         help="Install commands for all supported AI agents",
     ),
+    downstream: str = typer.Option(
+        "speckit",
+        "--downstream",
+        help="Downstream workflow: speckit, aidlc, github-issues, plain",
+    ),
     force: bool = typer.Option(
         False,
         "--force",
@@ -50,6 +58,13 @@ def init(
 ):
     """Initialise a new project with IDD structure and templates."""
     intent_path = Path(INTENT_DIR)
+
+    if downstream not in DOWNSTREAM_TOOLS:
+        console.print(
+            f"[red]Error:[/] Unsupported downstream tool '{downstream}'. "
+            f"Supported: {', '.join(DOWNSTREAM_TOOLS)}"
+        )
+        raise typer.Exit(code=1)
 
     if all_agents and ai != "claude":
         console.print("[red]Error:[/] --all and --ai are mutually exclusive.")
@@ -86,7 +101,7 @@ def init(
         (intent_path / "adr" / "_template.md").write_text(adr_template, encoding="utf-8")
 
         # Generate state and audit
-        state_json = generate_state_json(project_name)
+        state_json = generate_state_json(project_name, downstream=downstream)
         (intent_path / "state.json").write_text(state_json, encoding="utf-8")
 
         audit_md = generate_audit_md(project_name, "all" if all_agents else ai)

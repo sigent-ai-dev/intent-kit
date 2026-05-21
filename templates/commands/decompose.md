@@ -107,9 +107,14 @@ If gate fails: ERROR "Phase 3 (define) is not complete. Run /intent.define first
    - Feature NNN: [title] (blocked by: NNN)
    ```
 
-6. **Produce Spec Kit integration summary**:
+6. **Produce downstream integration summary**:
 
-   For each feature marked "Spec Kit ready: yes", produce a structured invocation block in this exact format:
+   Check `.intent/state.json` for the `downstream` field to determine the output format:
+   - `speckit` (default): produce `/speckit.specify` invocations in `speckit-ready.md`
+   - `github-issues`: produce `gh issue create` commands in `issues-ready.md`
+   - `plain`: produce a plain feature list in `features-ready.md`
+
+   For **speckit** downstream (default), produce a structured invocation block in this exact format:
 
    ```markdown
    ## Ready for /speckit.specify

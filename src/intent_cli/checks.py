@@ -326,34 +326,39 @@ def check_adr_traceability(intent_dir: Path, verbose: bool = False) -> list[Chec
     return results
 
 
-def check_speckit_ready(intent_dir: Path, verbose: bool = False) -> list[CheckResult]:
-    results = []
-    speckit_file = intent_dir / "backlog" / "speckit-ready.md"
+def check_downstream_ready(
+    intent_dir: Path, downstream: str = "speckit", verbose: bool = False
+) -> list[CheckResult]:
+    from intent_cli.adapters import get_adapter
 
-    if not speckit_file.is_file():
+    adapter = get_adapter(downstream)
+    results = []
+    output_file = intent_dir / "backlog" / adapter["output_file"]
+
+    if not output_file.is_file():
         results.append(
             CheckResult(
-                name="Speckit-ready output",
+                name="Downstream output",
                 passed=False,
                 severity="error",
-                message="speckit-ready.md not found in .intent/backlog/",
-                details=f"Expected at: {speckit_file}",
+                message=f"{adapter['output_file']} not found in .intent/backlog/",
+                details=f"Expected at: {output_file} (downstream: {adapter['name']})",
             )
         )
         return results
 
-    content = speckit_file.read_text(encoding="utf-8")
+    content = output_file.read_text(encoding="utf-8")
 
-    # Check for at least one invocation
-    invocations = re.findall(r"^/speckit\.specify\s+.+", content, re.MULTILINE)
+    # Check for at least one invocation/entry matching the adapter pattern
+    invocations = re.findall(adapter["invocation_pattern"], content, re.MULTILINE)
     if not invocations:
         results.append(
             CheckResult(
-                name="Speckit-ready output",
+                name="Downstream output",
                 passed=False,
                 severity="error",
-                message="No /speckit.specify invocations found in speckit-ready.md",
-                details="File exists but contains no ready features",
+                message=f"No entries found in {adapter['output_file']}",
+                details=f"File exists but contains no features ready for {adapter['name']}",
             )
         )
         return results
@@ -367,14 +372,13 @@ def check_speckit_ready(intent_dir: Path, verbose: bool = False) -> list[CheckRe
     if missing_sc:
         results.append(
             CheckResult(
-                name="Speckit-ready traceability",
+                name="Downstream traceability",
                 passed=False,
                 severity="warning",
                 message=(
-                    f"Invocations #{', #'.join(str(n) for n in missing_sc)} "
-                    f"missing SC-NNN references"
+                    f"Entries #{', #'.join(str(n) for n in missing_sc)} missing SC-NNN references"
                 ),
-                details="Each invocation should reference at least one success criterion"
+                details="Each entry should reference at least one success criterion"
                 if verbose
                 else None,
             )
@@ -382,11 +386,13 @@ def check_speckit_ready(intent_dir: Path, verbose: bool = False) -> list[CheckRe
     else:
         results.append(
             CheckResult(
-                name="Speckit-ready output",
+                name="Downstream output",
                 passed=True,
                 severity="error",
-                message=f"{len(invocations)} invocations found, all with SC references",
-                details=f"Invocations: {invocations}" if verbose else None,
+                message=f"{len(invocations)} entries found, all with SC references",
+                details=f"Downstream: {adapter['name']}, entries: {len(invocations)}"
+                if verbose
+                else None,
             )
         )
 
@@ -623,11 +629,12 @@ def run_all_checks(intent_dir: Path, verbose: bool = False) -> ValidationReport:
     # ADR traceability (always check if accepted/ has files)
     report.results.extend(check_adr_traceability(intent_dir, verbose))
 
-    # Decomposition quality and speckit-ready (only when decompose is complete)
+    # Decomposition quality and downstream-ready (only when decompose is complete)
     if decompose_complete:
+        downstream = state.get("downstream", "speckit")
         report.results.extend(check_decomposition_quality(intent_dir, verbose))
         report.results.extend(check_backlog_completeness(intent_dir, verbose))
-        report.results.extend(check_speckit_ready(intent_dir, verbose))
+        report.results.extend(check_downstream_ready(intent_dir, downstream, verbose))
         report.results.extend(check_cross_tool_traceability(intent_dir, verbose))
 
     return report

@@ -174,7 +174,7 @@ def test_check_speckit_ready_valid(tmp_path, monkeypatch):
     )
     result = runner.invoke(app, ["check"])
     assert result.exit_code == 0
-    assert "invocations found" in result.output
+    assert "entries found" in result.output
 
 
 def test_check_speckit_ready_missing(tmp_path, monkeypatch):
