@@ -1,0 +1,30 @@
+site_name: Intent Kit
+site_description: Toolkit for Intent-Driven Design (IDD)
+site_url: https://sigent-ai-dev.github.io/intent-kit/
+repo_url: https://github.com/sigent-ai-dev/intent-kit
+repo_name: sigent-ai-dev/intent-kit
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: amber
+  features:
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quick Start: quickstart.md
+  - Methodology: methodology.md
+  - Templates: templates.md
+  - Spec Kit Integration: speckit-integration.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
