@@ -15,6 +15,7 @@ from rich.console import Console
 
 from intent_cli.agents import AGENTS, COMMANDS, SUPPORTED_AGENTS
 from intent_cli.templates import (
+    adapt_template_for_agent,
     generate_audit_md,
     generate_state_json,
     get_template,
@@ -89,10 +90,11 @@ def init(
 
         for command in COMMANDS:
             source_content = get_template(f"commands/{command}.md")
+            adapted_content = adapt_template_for_agent(source_content, ai, command)
             filename = agent_config.file_pattern.format(command=command)
             target = agent_dir / filename
             if not target.exists():
-                target.write_text(source_content, encoding="utf-8")
+                target.write_text(adapted_content, encoding="utf-8")
 
     except PermissionError:
         console.print("[red]Error:[/] Cannot write to directory — permission denied.")
