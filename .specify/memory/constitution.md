@@ -1,50 +1,52 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Intent Kit Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Templates Over Code
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+The intelligence of Intent Kit lives in the command markdown files (consumed by AI agents), not in Python code. The CLI is thin scaffolding — it copies templates, validates state, and reports results. When in doubt, put logic in the template instructions, not in Python.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. CLI Interface
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+The CLI follows the `typer` + `rich` pattern. Commands are nouns (`init`, `check`). Text in/out: args → stdout, errors → stderr. Exit code 0 = success, 1 = failure. Support `--verbose` for debugging. Support `--force` for safe overwrite operations.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Multi-Agent Portability
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Every feature must work across all 6 supported AI agents (Claude, Gemini, Copilot, Cursor, Q, Windsurf). Agent-specific format adaptation happens at copy time via `adapt_template_for_agent()` — templates are authored in Claude format (YAML frontmatter + markdown body) and transformed for other agents.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Phase Gates Are Hard (NON-NEGOTIABLE)
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+No phase can advance without its predecessor being complete. The check command enforces this. The state file (`state.json`) is the single source of truth. Commands read it to enforce gates. No implicit advancement, no silent completion.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Traceability Chain
+
+Every artefact traces upstream: INT-NNN → SC-NNN → Feature → Spec → Code. Identifiers are stable (never reused). The decompose phase produces identifiers that flow through to Spec Kit. `intent check` validates this chain at every level.
+
+### VI. Simplicity & YAGNI
+
+Start simple. No abstractions until the third use. No feature flags. No backwards-compatibility shims. If the code can be changed directly, change it. Templates are the source of truth — if a command file says something different from the template, the template wins.
+
+## Quality Standards
+
+- All changes pass `ruff check` and `ruff format` (line-length: 100)
+- All changes pass `pytest` (currently 30+ tests)
+- Templates are tested by manual invocation across agents
+- CLI exit codes are tested explicitly in the test suite
+- `intent check` must never produce false positives (valid projects always pass)
+
+## Development Workflow
+
+- Issues decomposed from AGENTS.md with acceptance criteria
+- Feature branches named `<issue-number>-<short-name>`
+- Spec Kit workflow used for all features: specify → clarify → plan → tasks → implement
+- PRs require CI to pass (lint + test + build)
+- Admin can bypass branch protection when needed
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other practices. Changes to core principles require:
+1. A new ADR documenting the change
+2. Update to this file
+3. Review of all affected templates and commands
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-05-20 | **Last Amended**: 2026-05-20
