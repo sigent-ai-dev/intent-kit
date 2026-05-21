@@ -5,8 +5,6 @@ templates, and AI agent command files needed to run the four-phase
 intent workflow (capture -> steer -> define -> decompose).
 """
 
-__version__ = "0.1.0"
-
 import shutil
 from pathlib import Path
 
@@ -164,3 +162,11 @@ def check(
 
 def main():
     app()
+
+
+def __getattr__(name: str):
+    if name == "__version__":
+        from importlib.metadata import version
+
+        return version("intent-cli")
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

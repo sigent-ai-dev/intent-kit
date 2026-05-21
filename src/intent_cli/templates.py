@@ -27,7 +27,7 @@ def _find_templates_dir() -> Path:
         return _TEMPLATES_DIR
 
     raise FileNotFoundError(
-        "Cannot locate templates directory. Expected at: {pkg_data} or {repo_templates}"
+        f"Cannot locate templates directory. Expected at: {pkg_data} or {repo_templates}"
     )
 
 
@@ -38,15 +38,6 @@ def get_template(relative_path: str) -> str:
     if not template_file.is_file():
         raise FileNotFoundError(f"Template not found: {relative_path}")
     return template_file.read_text(encoding="utf-8")
-
-
-def get_template_path(relative_path: str) -> Path:
-    """Get the absolute path to a template file."""
-    templates_dir = _find_templates_dir()
-    template_file = templates_dir / relative_path
-    if not template_file.is_file():
-        raise FileNotFoundError(f"Template not found: {relative_path}")
-    return template_file
 
 
 def adapt_template_for_agent(content: str, agent: str, command: str) -> str:
