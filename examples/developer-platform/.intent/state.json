@@ -1,0 +1,21 @@
+{
+  "project_name": "dogfood-real",
+  "intent_id": "INT-001",
+  "current_phase": "capture",
+  "phases": {
+    "capture": {
+      "complete": true,
+      "completed_at": "2026-05-21T05:30:00Z"
+    },
+    "steer": {
+      "complete": false
+    },
+    "define": {
+      "complete": false
+    },
+    "decompose": {
+      "complete": false
+    }
+  },
+  "created_at": "2026-05-21T05:12:48Z"
+}
