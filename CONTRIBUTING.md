@@ -5,10 +5,9 @@ Thank you for your interest in contributing to Intent Kit.
 ## Development Setup
 
 ```bash
-git clone https://github.com/superhighway-factory/intent-kit.git
+git clone https://github.com/sigent-ai-dev/intent-kit.git
 cd intent-kit
-uv venv
-uv pip install -e ".[dev]"
+uv sync --dev
 ```
 
 ## Project Structure

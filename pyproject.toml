@@ -1,6 +1,6 @@
 [project]
 name = "intent-cli"
-version = "0.0.1"
+version = "0.1.0"
 description = "Intent CLI, part of Intent Kit. A tool to bootstrap projects for Intent-Driven Design (IDD)."
 requires-python = ">=3.11"
 dependencies = [
@@ -17,6 +17,11 @@ intent = "intent_cli:main"
 dev = [
     "pytest",
     "ruff",
+]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "pymdown-extensions",
 ]
 
 [build-system]
