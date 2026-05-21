@@ -49,6 +49,40 @@ def get_template_path(relative_path: str) -> Path:
     return template_file
 
 
+def adapt_template_for_agent(content: str, agent: str, command: str) -> str:
+    """Adapt a Claude-format command template for a different agent."""
+    if agent in ("claude", "gemini", "cursor"):
+        return content
+
+    # Split frontmatter from body
+    if content.startswith("---"):
+        parts = content.split("---", 2)
+        if len(parts) >= 3:
+            frontmatter_raw = parts[1].strip()
+            body = parts[2].strip()
+        else:
+            frontmatter_raw = ""
+            body = content
+    else:
+        frontmatter_raw = ""
+        body = content
+
+    # Extract description from frontmatter
+    description = ""
+    for line in frontmatter_raw.splitlines():
+        if line.startswith("description:"):
+            description = line.split(":", 1)[1].strip().strip("\"'")
+            break
+
+    if agent == "copilot":
+        return f'---\nname: intent-{command}\ndescription: "{description}"\n---\n\n{body}\n'
+
+    if agent in ("q", "windsurf"):
+        return f"# intent.{command}\n\n{description}\n\n{body}\n"
+
+    return content
+
+
 def generate_state_json(project_name: str) -> str:
     """Generate initial state.json content."""
     state = {

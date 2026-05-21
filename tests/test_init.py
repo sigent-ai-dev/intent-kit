@@ -113,6 +113,32 @@ def test_init_force_preserves_agent_commands(tmp_path, monkeypatch):
     assert cmd_file.read_text() == "customized content"
 
 
+def test_init_q_agent_strips_frontmatter(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner.invoke(app, ["init", "test-project", "--ai", "q"])
+    cmd = (tmp_path / ".amazonq" / "prompts" / "intent-capture.md").read_text()
+    assert not cmd.startswith("---")
+    assert cmd.startswith("# intent.capture")
+    assert "Phase 1 of IDD" in cmd
+
+
+def test_init_copilot_agent_format(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner.invoke(app, ["init", "test-project", "--ai", "copilot"])
+    cmd = (tmp_path / ".github" / "agents" / "intent-capture.md").read_text()
+    assert "name: intent-capture" in cmd
+    assert "description:" in cmd
+    assert "handoffs" not in cmd
+
+
+def test_init_windsurf_agent_strips_frontmatter(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    runner.invoke(app, ["init", "test-project", "--ai", "windsurf"])
+    cmd = (tmp_path / ".windsurf" / "workflows" / "intent-capture.md").read_text()
+    assert not cmd.startswith("---")
+    assert cmd.startswith("# intent.capture")
+
+
 def test_init_invalid_agent(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(app, ["init", "test-project", "--ai", "invalid"])
