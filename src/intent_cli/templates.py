@@ -74,12 +74,13 @@ def adapt_template_for_agent(content: str, agent: str, command: str) -> str:
     return content
 
 
-def generate_state_json(project_name: str) -> str:
+def generate_state_json(project_name: str, downstream: str = "speckit") -> str:
     """Generate initial state.json content."""
     state = {
         "project_name": project_name,
         "intent_id": "INT-001",
         "current_phase": None,
+        "downstream": downstream,
         "phases": {
             "capture": {"complete": False},
             "steer": {"complete": False},
