@@ -138,6 +138,22 @@ If gate fails: ERROR "Phase 3 (define) is not complete. Run /intent.define first
    - MUST contain "Advances SC-NNN" (at least one)
    - SHOULD contain "Constrained by ADR-NNN: [summary]" if relevant ADRs exist
    - MUST contain "Acceptance criteria seed:" followed by numbered AC from the feature
+   - MUST end with "Traceability: INT-NNN > SC-NNN > [feature-short-name]"
+
+   **Traceability preservation**: When `/speckit.specify` processes this invocation, it should produce a spec containing:
+
+   ```markdown
+   ## Traceability
+
+   - **Intent**: INT-001
+   - **Success Criteria**: SC-001, SC-003
+   - **Constraints**: ADR-003
+   - **Decomposed from**: .intent/backlog/features.md#1
+   ```
+
+   This section is free text — Spec Kit preserves it without modification.
+
+   **ID stability**: Feature numbering in `features.md` is positional (1, 2, 3...) and MUST NOT change once assigned. If features are added, they get the next available number. If features are removed, their numbers are retired (not reused).
 
    For features marked "Spec Kit ready: no", add a separate section:
 
