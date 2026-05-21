@@ -21,81 +21,140 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-The text the user typed after `/intent.capture` is the big idea description. This might be a sentence, a paragraph, or a path to an existing document. Your job is to structure it into the seven-section intent format.
+`/intent.capture` is Phase 1 of IDD. It turns a big idea (which may be vague, detailed, or anywhere between) into the seven-section intent format through collaborative elicitation.
+
+### Interaction Philosophy
+
+This command uses a **Propose-and-Steer** approach with Socratic escalation:
+
+1. **Lead with interpretation** — form your best understanding of the intent and present it. Don't interrogate from a blank slate.
+2. **One exchange at a time** — each response from the user reshapes your understanding.
+3. **The user can challenge the direction** — "wrong angle", "too narrow", "that's a feature not an intent" are all valid responses.
+4. **Silence means consent** — if you propose something and the user doesn't object, it's accepted.
+5. **Stop when aligned** — don't ask questions for the sake of completeness. If you can write a valid intent document, do it.
 
 ### Execution Flow
 
-1. **Parse the big idea** from user input.
-   - If empty: ERROR "No idea description provided. Describe the big idea you want to capture."
-   - If a file path: read the file and extract the seven sections from its content.
+**Step 1: Assess input quality.**
 
-2. **Create the intent directory** if it doesn't exist:
-   ```
-   .intent/
-   ```
+Read the user's input and classify:
 
-3. **Load template**: Read `templates/intent-template.md` for required structure.
+- **Rich input** (paragraph+ with clear outcomes, context, motivation): Skip to Step 3 — you have enough to draft the full intent.
+- **Moderate input** (sentence or two with some context): Go to Step 2 with a single focused proposal.
+- **Vague input** (a few words, no clear outcome): Go to Step 2 with interpretation + 1-2 probing questions.
+- **Empty input**: ERROR "No idea description provided. Describe the big idea you want to capture."
+- **File path**: Read the file and classify its content as above.
 
-4. **Extract and structure the seven sections**:
+**Step 2: Propose interpretation (Approach A — Propose-and-Steer).**
 
-   For each section, follow these rules:
+Present your interpretation of the big idea in this format:
 
-   **Context**: Extract environmental facts, constraints, prior art. If the user mentions existing systems, regulatory requirements, team structure, or organisational context — it goes here. DO NOT put solution ideas here.
+```
+Here's my read of what you're describing:
 
-   **Intent**: Distill the big idea into a SINGLE declarative sentence. This is the hardest part. Rules:
-   - Must be falsifiable (you can verify if the shipped system satisfies it)
-   - Must be a single sentence (≤ 3 sentence boundaries)
-   - Must describe the OUTCOME, not the approach
-   - If you cannot distill to one sentence, ask the user to clarify which aspect is the primary intent
+**The big idea**: [your one-sentence interpretation of the intent — the outcome, not the approach]
 
-   **Motivation**: Extract urgency, timing, cost of inaction. WHY NOW, not why at all.
+**What I think is driving this**: [your inference of motivation — why now?]
 
-   **Quality Attributes**: Extract NFRs. Tag each QA-NNN. If the user doesn't mention NFRs, infer reasonable ones from the domain and mark assumptions. Common categories: latency, throughput, availability, data residency, security posture, compliance, scalability.
+**Success would look like**: [2-3 observable outcomes you infer]
 
-   **Success Criteria**: Extract observable outcomes. Tag each SC-NNN. Each must be testable. If the user provides vague success ("it should work well"), push for specifics. Limit: maximum 7 success criteria. If more exist, the intent is too broad — suggest splitting.
+**What I'm assuming**: [1-2 key assumptions you're making]
 
-   **Assumptions**: Extract beliefs not yet verified. Tag confidence (high/medium/low). Common sources: technology assumptions, team capability assumptions, data availability assumptions, timeline assumptions.
+[If there's genuine ambiguity that blocks you from drafting:]
+**One thing I need to understand**: [single focused question — NOT a batch]
 
-   **Clarifications**: Identify gaps or ambiguities. Each gets a CLR-NNN ID. If something is genuinely unclear and would affect architecture, mark it OPEN. Limit: maximum 5 open clarifications. More than 5 suggests the intent isn't ready for capture — the user needs more discovery.
+Am I reading this right, or should I adjust my understanding?
+```
 
-5. **Validate the captured intent**:
-   - `context` is non-empty
-   - `intent` is a single declarative sentence
-   - `motivation` is non-empty
-   - `success_criteria` has at least 1 item
-   - No more than 5 OPEN clarifications
-   - No more than 7 success criteria (if more, suggest splitting the intent)
+Rules for Step 2:
+- Maximum 1 question. If you can infer the answer, state your assumption instead.
+- Your question should be framed as "Am I right that X?" not "What is X?" — propose, don't interrogate.
+- If the user says "yes" or confirms, move to Step 3.
+- If the user corrects, incorporate the correction and either move to Step 3 (if you now have enough) or present a revised interpretation.
+- If the user says "wrong direction" or challenges the framing, **escalate to Socratic mode**: reflect back what they said, probe gently ("Tell me more about what's driving this"), and guide them toward articulating the intent. Maximum 3 conversational exchanges before attempting Step 3 again.
+- Never present more than 3 proposal rounds total — if alignment isn't reached, proceed with best understanding and mark gaps as CLR-NNN items.
 
-6. **Write `.intent/intent.md`** using the template structure.
+**Step 3: Draft the seven sections.**
 
-7. **Write audit entry** to `.intent/audit.md`:
-   ```markdown
-   ## [ISO 8601 timestamp] — Intent captured
+Using your (now validated) understanding, structure the intent into seven sections:
 
-   **Actor**: [user/agent]
-   **Phase**: capture
-   **Outcome**: [complete | incomplete — N validation errors]
-   **Intent summary**: [the single sentence]
-   ```
+**Context**: Environmental facts, constraints, prior art. If the user mentions existing systems, regulatory requirements, team structure, or organisational context — it goes here. DO NOT put solution ideas here.
 
-8. **Update state** in `.intent/state.json`:
-   ```json
-   {
-     "current_phase": "capture",
-     "phase_complete": true,
-     "intent_id": "INT-001",
-     "captured_at": "<timestamp>",
-     "validation_errors": []
-   }
-   ```
+**Intent**: Distill the big idea into a SINGLE declarative sentence. Rules:
+- Must be falsifiable (you can verify if the shipped system satisfies it)
+- Must be a single sentence (≤ 3 sentence boundaries)
+- Must describe the OUTCOME, not the approach
+- If you cannot distill to one sentence, propose your best attempt and ask if it captures the core
 
-9. **Report completion**: Show the intent summary, any open clarifications, and readiness for `/intent.steer`.
+**Motivation**: Urgency, timing, cost of inaction. WHY NOW, not why at all.
+
+**Quality Attributes**: NFRs. Tag each QA-NNN. If the user didn't mention NFRs, infer reasonable ones from the domain and mark as assumed. Common categories: latency, throughput, availability, data residency, security posture, compliance, scalability.
+
+**Success Criteria**: Observable outcomes. Tag each SC-NNN. Each must be testable. Maximum 7. If more exist, the intent is too broad — propose splitting.
+
+**Assumptions**: Beliefs not yet verified. Tag confidence (high/medium/low). Common sources: technology, team capability, data availability, timeline.
+
+**Clarifications**: Gaps or ambiguities. Each gets CLR-NNN. Mark OPEN if genuinely unclear and would affect architecture. Maximum 5 OPEN. More than 5 means the intent needs more discovery.
+
+**Step 4: Present the draft for confirmation.**
+
+Show the complete intent document and ask:
+
+```
+Here's the captured intent. Review it — I'll adjust anything that doesn't match your thinking.
+
+[full intent document]
+
+Does this capture what you're trying to do? Flag anything that feels off — especially the Intent sentence and Success Criteria, since everything downstream traces to those.
+```
+
+If the user confirms: proceed to Step 5.
+If the user corrects: incorporate and re-present only the changed sections.
+
+**Step 5: Validate.**
+
+- `context` is non-empty
+- `intent` is a single declarative sentence
+- `motivation` is non-empty
+- `success_criteria` has at least 1 item
+- No more than 5 OPEN clarifications
+- No more than 7 success criteria
+
+**Step 6: Write outputs.**
+
+Create `.intent/` directory if it doesn't exist.
+
+Write `.intent/intent.md` using the template structure.
+
+Write audit entry to `.intent/audit.md`:
+```markdown
+## [ISO 8601 timestamp] — Intent captured
+
+**Actor**: [user/agent]
+**Phase**: capture
+**Outcome**: [complete | incomplete — N validation errors]
+**Intent summary**: [the single sentence]
+```
+
+Update `.intent/state.json`:
+```json
+{
+  "current_phase": "capture",
+  "phases": { "capture": { "complete": true, "completed_at": "<timestamp>" } }
+}
+```
+
+**Step 7: Report completion.**
+
+Show the intent summary, any open clarifications, and readiness for `/intent.steer`.
 
 ## Guidelines
 
-- This is a BIG IDEA capture, not a feature specification. If the user describes something that sounds like a single user story, ask whether there's a larger initiative it belongs to.
-- Make informed guesses for Quality Attributes and Assumptions based on the domain — document them clearly.
+- This is a BIG IDEA capture, not a feature specification. If the user describes something that sounds like a single user story, say so: "This sounds like a feature rather than an intent. Is there a larger initiative it belongs to?"
+- Make informed guesses for Quality Attributes and Assumptions — document them clearly so the user can correct.
 - The intent sentence is the most important output. Spend effort getting it right.
 - DO NOT make architectural decisions. That's Phase 2.
 - DO NOT decompose into features. That's Phase 4.
 - If the user provides a document/file path, read it and synthesise — don't just copy sections verbatim.
+- **Correction is the high-value signal** — when the user redirects, that tells you more than their original input. Capture it, acknowledge it visibly, adjust.
+- **Show your reasoning** — "I'm interpreting 'organisations' as multi-tenancy because..." lets the user correct the inference, not just the conclusion.
