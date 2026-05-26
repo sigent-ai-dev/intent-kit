@@ -12,6 +12,7 @@ import typer
 from rich.console import Console
 
 from intent_cli.agents import AGENTS, COMMANDS, SUPPORTED_AGENTS
+from intent_cli.capture import app as capture_app
 from intent_cli.templates import (
     adapt_template_for_agent,
     generate_audit_md,
@@ -23,6 +24,7 @@ app = typer.Typer(
     name="intent",
     help="Intent Kit CLI — bootstrap projects for Intent-Driven Design.",
 )
+app.add_typer(capture_app)
 
 console = Console()
 
