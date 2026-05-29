@@ -37,7 +37,7 @@ intent-kit/
 
 ### Adding a New AI Agent
 
-Follow the same pattern as Spec Kit — add agent config to `src/intent_cli/__init__.py` and ensure the commands directory is generated on `intent init`.
+Add agent config to `src/intent_cli/__init__.py` and ensure the commands directory is generated on `intent init`.
 
 ### Improving Templates
 
@@ -58,6 +58,6 @@ New commands go in `templates/commands/`. Each must:
 
 Be kind, constructive, and focused on making the methodology better.
 
-## Spec Kit Integration
+## Downstream Integration
 
-Intent Kit is designed to hand off to Spec Kit. When testing the full flow, ensure that `/intent.decompose` produces output that `/speckit.specify` can consume without modification.
+Intent Kit hands off to any configured downstream workflow via adapters (see `src/intent_cli/adapters.py`). When testing the full flow, ensure that `/intent.decompose` produces output matching the configured adapter's expected format.

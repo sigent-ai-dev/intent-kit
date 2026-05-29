@@ -2,19 +2,19 @@
 
 ## About Intent Kit
 
-**Intent Kit** is a toolkit for implementing Intent-Driven Design (IDD) — a methodology that captures structured business intent before any specification or implementation work begins. It is the upstream companion to GitHub Spec Kit.
+**Intent Kit** is a toolkit for implementing Intent-Driven Design (IDD) — a methodology that captures structured business intent before any specification or implementation work begins. It hands off to any downstream SDD workflow (Spec Kit, AI-DLC, OpenSpec, GitHub Issues, or custom).
 
 **Intent CLI** is the command-line interface that bootstraps projects with the IDD framework. It sets up directory structures, templates, and AI agent integrations to support the four-phase intent workflow.
 
 ## Development Context
 
-This project uses Spec Kit's own methodology to develop itself. Use `/speckit.specify` to specify features, `/speckit.plan` to plan them, and `/speckit.implement` to build them. The project should be bootstrapped with Spec Kit once the CLI `intent init` is functional.
+This project uses its own IDD methodology for development. Use the `/intent.*` commands for upstream design work, then hand off to your configured downstream workflow for implementation.
 
 ## Architecture
 
 ### CLI (`src/intent_cli/`)
 
-The CLI is a Python package using `typer` + `rich`, distributed via `uv tool install`. It mirrors Spec Kit's `specify` CLI pattern:
+The CLI is a Python package using `typer` + `rich`, distributed via `uv tool install`:
 
 - `intent init <project>` — scaffolds `.intent/`, templates, agent commands
 - `intent check` — validates phase state, traceability, and gate satisfaction
@@ -38,7 +38,7 @@ Five commands define the IDD workflow:
 | `/intent.capture` | 1 | Big idea description | `.intent/intent.md` |
 | `/intent.steer` | 2 | intent.md | ADRs + `steering.md` |
 | `/intent.define` | 3 | intent + ADRs | `architecture.md` or `business-design.md` |
-| `/intent.decompose` | 4 | intent + design doc | `backlog/features.md` + speckit-ready commands |
+| `/intent.decompose` | 4 | intent + design doc | `backlog/features.md` + adapter-formatted output |
 | `/intent.clarify` | any | intent.md | Resolved clarifications |
 
 ### Project State (`.intent/state.json`)
@@ -62,7 +62,7 @@ The state file tracks which phase is complete and enforces gates:
 
 ### Phase A: Foundation (complete)
 
-- [x] Project structure mirroring Spec Kit
+- [x] Project structure (template-driven CLI)
 - [x] README with full workflow documentation
 - [x] Template files for all 4 phases
 - [x] Command files for all AI agents
@@ -75,7 +75,7 @@ The state file tracks which phase is complete and enforces gates:
 
 ### Phase B: CLI Implementation (complete)
 
-- [x] Agent config dictionary (mirroring Spec Kit's pattern)
+- [x] Agent config dictionary for multi-agent command generation
 - [x] `intent init` scaffolds all directories and agent-specific command files
 - [x] `intent check` validates:
   - Phase state consistency
@@ -94,11 +94,12 @@ The state file tracks which phase is complete and enforces gates:
 - [x] Amazon Q Developer prompts (`.amazonq/prompts/`)
 - [x] Windsurf workflows (`.windsurf/workflows/`)
 
-### Phase D: Spec Kit Integration (complete)
+### Phase D: Downstream Integration (complete)
 
-- [x] `/intent.decompose` produces output consumable by `/speckit.specify`
-- [x] Traceability identifiers flow through to Spec Kit feature directories
+- [x] `/intent.decompose` produces adapter-formatted output for any downstream workflow
+- [x] Traceability identifiers flow through to downstream feature directories
 - [x] `intent check` validates cross-tool traceability
+- [x] Built-in adapters: speckit, aidlc, github-issues, plain
 - [x] Documentation: integration guide
 
 ### Phase E: Testing & Polish (complete)
@@ -118,8 +119,8 @@ The state file tracks which phase is complete and enforces gates:
 
 ## Key Design Decisions
 
-1. **Mirror Spec Kit structure** — same CLI pattern (`uv tool install`), same template-driven approach, same multi-agent support.
+1. **Workflow-agnostic** — downstream adapter pattern means any SDD framework (Spec Kit, AI-DLC, OpenSpec, plain issues) receives the same structured handoff.
 2. **Templates over code** — the intelligence lives in the command markdown files (consumed by AI agents), not in Python code. The CLI is thin scaffolding.
 3. **State file for gates** — `.intent/state.json` is the single source of truth for phase progression. Commands read it to enforce gates.
 4. **Audit log is append-only** — `.intent/audit.md` is never rewritten, only appended.
-5. **Spec Kit handoff is explicit** — the decompose phase produces ready-to-use `/speckit.specify` invocations.
+5. **Configurable adapters** — the decompose phase produces output formatted for the configured downstream tool via `adapters.py`.

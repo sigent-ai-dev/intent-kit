@@ -46,9 +46,9 @@ Break the big idea into right-sized features:
 - Each feature references specific success criteria
 - Size must be ≤ L (1-2 weeks). XL features must split.
 - Features are independently deliverable and testable
-- Produces copy-pasteable `/speckit.specify` invocations
+- Produces adapter-formatted output for your downstream workflow
 
-**Gate**: No XL features. Every SC has at least one feature. speckit-ready.md exists.
+**Gate**: No XL features. Every SC has at least one feature. Adapter output file exists.
 
 ## Key Principles
 
@@ -80,8 +80,10 @@ Features must be:
 
 ## Integration Points
 
-IDD is the **upstream** methodology. It feeds into:
+IDD is the **upstream** methodology. It feeds into any downstream SDD workflow:
 
-- **Spec Kit** — for feature-level specification and implementation
-- **ADM Kit** — for architectural decision management
-- Any backlog tool (GitHub Issues, Jira, Linear) via `/intent.decompose`
+- **Spec Kit** — Spec-Driven Development
+- **AI-DLC** — AI Development Lifecycle
+- **OpenSpec** — open-source specification framework
+- **GitHub Issues / Jira / Linear** — lightweight backlog via adapters
+- Custom workflows via the adapter extension point
