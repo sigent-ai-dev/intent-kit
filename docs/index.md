@@ -2,12 +2,12 @@
 
 **Turn big ideas into right-sized, traceable deliverables.**
 
-Intent Kit is an open-source toolkit for Intent-Driven Design (IDD) — a methodology that captures structured business intent before any specification, architecture, or implementation work begins.
+Intent Kit is an open-source toolkit for Intent-Driven Design (IDD) — a methodology that captures structured business intent before any specification, architecture, or implementation work begins. It hands off to any downstream SDD workflow.
 
 ## What It Does
 
 ```
-Big Idea → Intent → Steer → Define → Decompose → [Spec Kit takes over]
+Big Idea → Intent → Steer → Define → Decompose → [your SDD workflow takes over]
 ```
 
 | Phase | Command | Output |
@@ -15,7 +15,7 @@ Big Idea → Intent → Steer → Define → Decompose → [Spec Kit takes over]
 | 1. Capture | `/intent.capture` | `intent.md` (7 sections) |
 | 2. Steer | `/intent.steer` | ADRs + `steering.md` |
 | 3. Define | `/intent.define` | `architecture.md` or `business-design.md` |
-| 4. Decompose | `/intent.decompose` | Right-sized features ready for Spec Kit |
+| 4. Decompose | `/intent.decompose` | Right-sized features for your downstream workflow |
 
 ## Why It Exists
 
@@ -42,4 +42,4 @@ Without structured intent:
 - [Installation](installation.md)
 - [Quick Start](quickstart.md)
 - [IDD Methodology](methodology.md)
-- [Spec Kit Integration](speckit-integration.md)
+- [Downstream Integrations](downstream-integrations.md)

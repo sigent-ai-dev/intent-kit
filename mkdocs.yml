@@ -19,7 +19,7 @@ nav:
   - Quick Start: quickstart.md
   - Methodology: methodology.md
   - Templates: templates.md
-  - Spec Kit Integration: speckit-integration.md
+  - Downstream Integrations: downstream-integrations.md
   - Changelog: changelog.md
 
 markdown_extensions:

@@ -2,7 +2,7 @@
 
 **Turn big ideas into right-sized, traceable deliverables.**
 
-Intent Kit is an open-source toolkit for Intent-Driven Design (IDD) — a methodology that captures structured business intent before any specification, architecture, or implementation work begins. It is the upstream companion to [Spec Kit](https://github.com/github/spec-kit), filling the gap between strategy and feature-level work.
+Intent Kit is an open-source toolkit for Intent-Driven Design (IDD) — a methodology that captures structured business intent before any specification, architecture, or implementation work begins. It fills the gap between strategy and feature-level work, handing off to whichever specification or development workflow your team uses.
 
 ---
 
@@ -19,7 +19,7 @@ Every downstream artefact — spec, plan, decision, task, code — traces back t
 
 ## Why Intent Kit?
 
-Spec Kit answers "how do we specify, plan, and implement a feature?" Intent Kit answers the prior question: **"why does this feature exist, and how do we guarantee that answer remains visible through every layer of the system?"**
+Downstream tools (Spec Kit, AI-DLC, OpenSpec, plain GitHub Issues) answer "how do we specify, plan, and implement a feature?" Intent Kit answers the prior question: **"why does this feature exist, and how do we guarantee that answer remains visible through every layer of the system?"**
 
 Without structured intent:
 - Specs validate cleanly but the shipped feature drifts from what was needed ("green gates, broken reality")
@@ -30,7 +30,7 @@ Without structured intent:
 ## The IDD Workflow
 
 ```
-Big Idea → Intent → Steer → Define → Decompose → [Spec Kit takes over]
+Big Idea → Intent → Steer → Define → Decompose → [your SDD workflow takes over]
 ```
 
 | Phase | Command | Output |
@@ -38,7 +38,7 @@ Big Idea → Intent → Steer → Define → Decompose → [Spec Kit takes over]
 | 1. Capture | `/intent.capture` | `intent.md` (7 sections) |
 | 2. Steer | `/intent.steer` | ADRs + `steering.md` |
 | 3. Define | `/intent.define` | `architecture.md` or `business-design.md` |
-| 4. Decompose | `/intent.decompose` | Reviewed backlog of right-sized features |
+| 4. Decompose | `/intent.decompose` | Right-sized features ready for your downstream workflow |
 
 Each phase is **gated** (next phase refuses to proceed until current validates), **sequential** (no skipping), and **idempotent** (safe to re-run).
 
@@ -117,7 +117,7 @@ Produces either an Architecture Design Document or Business Design Document depe
 /intent.decompose
 ```
 
-Breaks the big idea into right-sized features, each with a copy-pasteable `/speckit.specify` invocation ready for [Spec Kit](https://github.com/github/spec-kit).
+Breaks the big idea into right-sized features formatted for your configured downstream workflow (Spec Kit, AI-DLC, GitHub Issues, or plain markdown).
 
 ## Supported AI Agents
 
@@ -149,8 +149,8 @@ your-project/
 │   ├── audit.md                  # Append-only decision log
 │   └── state.json                # Phase state machine
 ├── memory/
-│   └── constitution.md           # Project principles (shared with Spec Kit)
-├── specs/                        # Spec Kit feature directories land here
+│   └── constitution.md           # Project principles
+├── specs/                        # Downstream feature directories land here
 │   └── ...
 └── doc/
     └── design/                   # Design documents
@@ -192,23 +192,36 @@ INT-001 → SC-001 → US-001 → FR-001 → DEC-001 → T-001
 
 Every identifier at level N references at least one at level N-1.
 
-## Integration with Spec Kit
+## Downstream Integrations
 
-Intent Kit is designed as the upstream companion to Spec Kit:
+Intent Kit is workflow-agnostic. The decompose phase produces feature descriptions formatted for your chosen downstream tool:
+
+| Adapter | Output | Downstream Tool |
+|---------|--------|-----------------|
+| `speckit` | `speckit-ready.md` | [Spec Kit](https://github.com/github/spec-kit) — Spec-Driven Development |
+| `aidlc` | `aidlc-ready.md` | [AI-DLC](https://github.com/awslabs/aidlc-workflows) — AI Development Lifecycle |
+| `github-issues` | `issues-ready.md` | GitHub Issues — lightweight backlog |
+| `plain` | `features-ready.md` | Plain markdown — no downstream tool |
+
+Configure at init time:
+
+```bash
+intent init my-project --downstream speckit      # default
+intent init my-project --downstream aidlc
+intent init my-project --downstream github-issues
+intent init my-project --downstream plain
+```
 
 ```
-Intent Kit                           Spec Kit
-─────────                           ────────
+Intent Kit                           Your SDD Workflow
+─────────                           ─────────────────
 /intent.capture                     
 /intent.steer                       
 /intent.define                      
-/intent.decompose ──────────────▶   /speckit.specify (per feature)
-                                    /speckit.plan
-                                    /speckit.tasks
-                                    /speckit.implement
+/intent.decompose ──────────────▶   Spec Kit, AI-DLC, OpenSpec, Issues, etc.
 ```
 
-The decompose phase produces feature descriptions ready for `/speckit.specify`. Each carries:
+Each decomposed feature carries:
 - Intent reference (INT-001)
 - Success criteria it advances (SC-002, SC-003)
 - Architectural constraints from steering
@@ -227,7 +240,7 @@ See [`examples/`](./examples/) for full worked examples:
 - [Quick Start](./docs/quickstart.md)
 - [IDD Methodology](./docs/methodology.md)
 - [Template Reference](./docs/templates.md)
-- [Integration with Spec Kit](./docs/speckit-integration.md)
+- [Downstream Integrations](./docs/downstream-integrations.md)
 - [IDD Methodology (source)](./doc/design/intent-driven-design-generic.md)
 
 ## Contributing

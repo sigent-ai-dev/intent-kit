@@ -65,7 +65,7 @@ maintainable stack behind a web interface
 /intent.decompose
 ```
 
-Each decomposed feature is ready for Spec Kit's `/speckit.specify`.
+Each decomposed feature is formatted for your configured downstream workflow (Spec Kit, AI-DLC, GitHub Issues, or plain markdown).
 
 ## 7. Validate State
 
@@ -87,5 +87,5 @@ See full worked examples in [`examples/`](https://github.com/sigent-ai-dev/inten
 ## Next Steps
 
 - Read the [IDD Methodology](methodology.md) for the full framework
-- See [Spec Kit Integration](speckit-integration.md) for the handoff workflow
+- See [Downstream Integrations](downstream-integrations.md) for the handoff workflow
 - Check [Templates](templates.md) for customisation options
